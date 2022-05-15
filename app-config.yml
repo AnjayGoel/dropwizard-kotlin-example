@@ -1,0 +1,62 @@
+server:
+  applicationConnectors:
+    - type: http
+      port: 8080
+    - type: https
+      port: 8443
+      keyStorePath: example.keystore
+      keyStorePassword: example
+  adminConnectors:
+    - type: http
+      port: 8081
+    - type: https
+      port: 8444
+      keyStorePath: example.keystore
+      keyStorePassword: example
+
+database:
+  driverClass: org.postgresql.Driver
+  url: 'jdbc:postgresql://localhost/dropwizard'
+  user: silverbug
+  password: silverbug
+  properties:
+    charSet: UTF-8
+    hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate.hbm2ddl.auto: update
+
+health:
+  delayedShutdownHandlerEnabled: true
+  shutdownWaitPeriod: 10s
+  healthChecks:
+    - name: database
+      critical: true
+      schedule:
+        checkInterval: 60s
+        downtimeInterval: 10s
+        failureAttempts: 2
+        successAttempts: 1
+
+metrics:
+  reporters:
+    - type: console
+      includes: ["com.silverbug.example.resources.PersonResource.create_person_meter"]
+      includesAttributes: ["mean_rate"]
+      frequency: 10s
+      output: stdout
+
+
+logging:
+  level: INFO
+  loggers:
+    org.hibernate.SQL:
+      level: DEBUG
+  appenders:
+    - type: console
+    - type: file
+      threshold: INFO
+      logFormat: "%-6level [%d{HH:mm:ss.SSS}] [%t] %logger{5} - %X{code} %msg %n"
+      currentLogFilename: /tmp/dropwizard.log
+      archivedLogFilenamePattern: /tmp/dropwizard-%d{yyyy-MM-dd}-%i.log.gz
+      archivedFileCount: 7
+      timeZone: UTC
+      maxFileSize: 10MiB
